@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="top.spco.cashflow.MainController">
+    <top>
+        <MenuBar>
+            <Menu text="文件">
+                <MenuItem text="分析" onAction="#onAnalyze"/>
+                <MenuItem text="分析..." onAction="#onAnalyzeFile"/>
+                <MenuItem text="打开..." onAction="#onOpen"/>
+                <MenuItem text="保存" onAction="#onSave"/>
+                <MenuItem text="退出" onAction="#onExit"/>
+            </Menu>
+        </MenuBar>
+    </top>
+
+    <center>
+        <TableView fx:id="tableView" editable="true">
+            <columns>
+                <TableColumn fx:id="colTimestamp" text="时间戳" prefWidth="150"/>
+                <TableColumn fx:id="colAmount" text="金额" prefWidth="100"/>
+                <TableColumn fx:id="colCategory" text="分类" prefWidth="100"/>
+                <TableColumn fx:id="colSubCategory" text="子类" prefWidth="100"/>
+                <TableColumn fx:id="colNote" text="备注" prefWidth="200"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <bottom>
+        <ToolBar>
+            <Button text="添加" onAction="#onAdd"/>
+            <Button text="快速添加" onAction="#onQuickAdd"/>
+            <Button text="编辑" onAction="#onEdit"/>
+            <Button text="删除" onAction="#onDelete"/>
+            <Button text="编辑分类" onAction="#onEditCategory"/>
+            <Separator orientation="VERTICAL"/>
+            <Label text="搜索:"/>
+            <TextField fx:id="searchField" onKeyReleased="#onSearch"/>
+            <ComboBox fx:id="yearBox"  prefWidth="100"/>
+            <ComboBox fx:id="monthBox" prefWidth="80"/>
+        </ToolBar>
+    </bottom>
+</BorderPane>

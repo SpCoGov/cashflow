@@ -16,7 +16,6 @@
 package top.spco.cashflow;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -29,13 +28,18 @@ public class CashflowApplication extends Application {
         Parent root = loader.load();
         Scene scene = new Scene(root);
         stage.setScene(scene);
-        stage.setOnCloseRequest(event -> {
-            Platform.exit();
-            System.exit(0);
-        });
+
+        // 从 FXML 拿到控制器，安装关闭守卫
+        MainController controller = loader.getController();
+        controller.installCloseGuard(stage);
+
         root.requestFocus();
-        stage.setScene(scene);
         stage.show();
+
+        // 启动时刷新一次标题（未命名 + 年月）
+        controller.getClass(); // 占位避免未使用告警
+        // 若需要可在 MainController.initialize() 末尾调用 updateWindowTitle()，
+        // 或这里拿到 currentYm/currentFile 后通过公开方法更新。
     }
 
     public static void main(String[] args) {

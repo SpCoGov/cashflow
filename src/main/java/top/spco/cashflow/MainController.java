@@ -19,13 +19,18 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -44,14 +49,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * 主控制器（分类树为真相源，删除/修改记录不会丢失下拉选项）
- */
 public class MainController {
     private static final String FILE_EXT = ".cflg";
     private static final String FILE_DESC = "Cashflow Ledger (*" + FILE_EXT + ")";
 
-    // ===== FXML =====
+    // MARK: FXML
     @FXML
     private TableView<RecordRow> tableView;
     @FXML
@@ -84,6 +86,31 @@ public class MainController {
 
     private YearMonth currentYm = YearMonth.now();
     private File currentFile = null;
+    // 是否有未保存更改
+    private boolean dirty = false;
+
+    // 标记脏/清理脏 & 更新标题
+    private void markDirty() {
+        if (!dirty) {
+            dirty = true;
+            updateWindowTitle();
+        }
+    }
+
+    private void clearDirty() {
+        if (dirty) {
+            dirty = false;
+            updateWindowTitle();
+        }
+    }
+
+    private void updateWindowTitle() {
+        Stage s = getStage();
+        if (s == null) return;
+        String name = (currentFile != null) ? currentFile.getName() : ("未命名" + FILE_EXT);
+        String title = (dirty ? "* " : "") + name + "  -  " + currentYm;
+        s.setTitle(title);
+    }
 
     /**
      * 分类树真相源（文件打开时载入；新增/编辑时并入；删除/修改记录不影响它）
@@ -94,7 +121,7 @@ public class MainController {
     private final ObservableList<String> categoryChoices = FXCollections.observableArrayList();
     private final Map<String, ObservableList<String>> subChoicesByCat = new HashMap<>();
 
-    // ===== 初始化 =====
+    // MARK: Initialize
     @FXML
     public void initialize() {
         // 列绑定
@@ -136,16 +163,50 @@ public class MainController {
 
         initYearMonthPickers();         // 初始化年/月控件
         syncYearMonthPickersFromState(); // 与 currentYm 同步显示
+
+        enableDragOpen(tableView);
+        tableView.sceneProperty().addListener((obs, oldSc, sc) -> {
+            if (sc != null) enableDragOpen(sc.getRoot());
+        });
+    }
+
+    // 安装窗口关闭拦截：未保存时提示
+    public void installCloseGuard(Stage stage) {
+        stage.setOnCloseRequest(evt -> {
+            if (!dirty) return; // 干净，直接关
+            ButtonType SAVE = new ButtonType("保存", ButtonBar.ButtonData.YES);
+            ButtonType NO   = new ButtonType("不保存", ButtonBar.ButtonData.NO);
+            ButtonType CANCEL = new ButtonType("取消", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+            Alert a = new Alert(Alert.AlertType.CONFIRMATION,
+                    "文件已修改，是否在退出前保存？", SAVE, NO, CANCEL);
+            a.setTitle("未保存的更改");
+            Optional<ButtonType> r = a.showAndWait();
+
+            if (r.isEmpty() || r.get() == CANCEL) {
+                evt.consume(); // 取消关闭
+                return;
+            }
+            if (r.get() == SAVE) {
+                try {
+                    onSave();            // 复用现有保存逻辑
+                    if (dirty) {         // 若保存失败（仍是脏），阻止关闭
+                        evt.consume();
+                    }
+                } catch (Exception e) {
+                    evt.consume();
+                    showError("保存失败：" + e.getMessage());
+                }
+            }
+            // 选择“不保存”则直接放行
+        });
     }
 
     // ===== 文件操作（分类树结构） =====
     @FXML
     private void onAnalyzeFile() {
         FileChooser fc = new FileChooser();
-        fc.getExtensionFilters().setAll(
-                new FileChooser.ExtensionFilter("Cashflow Ledger (*.cflg)", "*.cflg"),
-                new FileChooser.ExtensionFilter("所有文件 (*.*)", "*.*")
-        );
+        fc.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("Cashflow Ledger (*.cflg)", "*.cflg"), new FileChooser.ExtensionFilter("所有文件 (*.*)", "*.*"));
         File f = fc.showOpenDialog(tableView.getScene().getWindow());
         if (f == null) return;
         try {
@@ -172,35 +233,10 @@ public class MainController {
     @FXML
     private void onOpen() {
         FileChooser fc = new FileChooser();
-        fc.getExtensionFilters().setAll(
-                new FileChooser.ExtensionFilter(FILE_DESC, "*" + FILE_EXT),
-                new FileChooser.ExtensionFilter("所有文件 (*.*)", "*.*")
-        );
+        fc.getExtensionFilters().setAll(new FileChooser.ExtensionFilter("Cashflow Ledger (*.cflg)", "*.cflg"), new FileChooser.ExtensionFilter("所有文件 (*.*)", "*.*"));
         File f = fc.showOpenDialog(getStage());
         if (f == null) return;
-        try {
-            LedgerIO.Bundle b = LedgerIO.load(f);
-            currentYm = YearMonth.of(b.ledger.year(), b.ledger.month());
-            syncYearMonthPickersFromState();
-            currentFile = f;
-
-            master.clear();
-            int[] order = b.ledger.sortedIndicesByTimestampAsc();
-            for (int r : order) {
-                MonthlyLedger.EntryView e = b.ledger.get(r);
-                String cat = b.taxonomy.categoryName(e.categoryId());
-                String sub = b.taxonomy.subName(e.categoryId(), e.subCategoryId());
-                master.add(new RecordRow(e.timestamp(), e.amountInCents(), cat, sub, e.noteUtf8()));
-            }
-
-            // ★ 用文件中的 taxonomy 作为真相源
-            this.taxonomy = b.taxonomy;
-            rebuildChoicesFromTaxonomy(this.taxonomy);
-            tableView.sort();
-            showInfo("已打开：" + f.getName());
-        } catch (IOException ex) {
-            showError("读取失败：" + ex.getMessage());
-        }
+        openFile(f);
     }
 
     @FXML
@@ -237,6 +273,7 @@ public class MainController {
                 ledger.add(r.getTimestampMs(), r.getAmountCents(), catId, subId, r.getNote());
             }
             LedgerIO.save(ledger, taxonomy, currentFile);
+            clearDirty();
             showInfo("已保存：" + currentFile.getName());
         } catch (Exception ex) {
             showError("保存失败：" + ex.getMessage());
@@ -254,6 +291,7 @@ public class MainController {
         RecordRow edited = showEditDialog(null);
         if (edited != null) {
             master.add(edited);
+            markDirty();
             rebuildChoicesFromTaxonomy(taxonomy);
             tableView.sort();
         }
@@ -270,8 +308,7 @@ public class MainController {
         Label ymLabel = new Label(currentYm.toString()); // 例如 2010-02
 
         // “日”输入：默认上次用过的日；否则默认今天（限制在当月范围内）
-        int defDay = (lastQuickDay != null) ? lastQuickDay
-                : Math.min(LocalDate.now().getDayOfMonth(), currentYm.lengthOfMonth());
+        int defDay = (lastQuickDay != null) ? lastQuickDay : Math.min(LocalDate.now().getDayOfMonth(), currentYm.lengthOfMonth());
         TextField dayField = new TextField(String.valueOf(defDay));
 
         TextField amtField = new TextField();
@@ -287,9 +324,27 @@ public class MainController {
         catBox.valueProperty().addListener((o, ov, nv) -> refreshSubChoices(catBox, subBox, ""));
         catBox.getEditor().textProperty().addListener((o, ov, nv) -> refreshSubChoices(catBox, subBox, ""));
 
+        // ★ 当外部的 yearBox / monthBox 变化 -> 更新 currentYm（已有） -> 同步刷新 ymLabel，并校正 dayField
+        ChangeListener<Object> syncYmAndClampDay = (o, ov, nv) -> {
+            // 刷新显示
+            ymLabel.setText(currentYm.toString());
+            // 校正“日”到当月范围
+            int max = currentYm.lengthOfMonth();
+            int dayNow = parseIntOrDefault(dayField.getText(), (lastQuickDay != null) ? lastQuickDay : max);
+            if (dayNow < 1) dayNow = 1;
+            if (dayNow > max) dayNow = max;
+            if (!String.valueOf(dayNow).equals(dayField.getText())) {
+                dayField.setText(String.valueOf(dayNow));
+            }
+        };
+// 监听外部选择器（它们已驱动 applyYearMonthFromPickers 更新 currentYm）
+        yearBox.valueProperty().addListener(syncYmAndClampDay);
+        monthBox.valueProperty().addListener(syncYmAndClampDay);
+
+// 首次进入对话框时同步一次
+        ymLabel.setText(currentYm.toString());
+
         TextField noteField = new TextField();
-        Button importBtn = new Button("从微信支付导入…");
-        importBtn.setOnAction(e -> onImportWeChatPay());
 
         GridPane grid = new GridPane();
         grid.setHgap(8);
@@ -300,11 +355,10 @@ public class MainController {
         grid.addRow(3, new Label("类别(必选)"), catBox);
         grid.addRow(4, new Label("子类别(必选)"), subBox);
         grid.addRow(5, new Label("备注"), noteField);
-        grid.add(importBtn, 1, 6);
         dlg.getDialogPane().setContent(grid);
 
         Button addBtn = (Button) dlg.getDialogPane().lookupButton(ADD_NEXT);
-        addBtn.addEventFilter(javafx.event.ActionEvent.ACTION, evt -> {
+        addBtn.addEventFilter(ActionEvent.ACTION, evt -> {
             try {
                 int day = Integer.parseInt(dayField.getText().trim());
                 validateDayInMonth(currentYm, day); // 校验“日”在当月合法
@@ -324,6 +378,7 @@ public class MainController {
                 rebuildChoicesFromTaxonomy(taxonomy);
 
                 master.add(new RecordRow(ts, cents, cat, sub, note));
+                markDirty();
                 tableView.sort();
 
                 // 记住“日”，不清空；金额与备注清空；焦点回金额并全选
@@ -387,6 +442,7 @@ public class MainController {
             // 成功后刷新可选项 & 排序
             rebuildChoicesFromTaxonomy(taxonomy);
             tableView.sort();
+            markDirty();
             showInfo("导入完成");
         } catch (Exception ex) {
             showError("导入失败：" + ex.getMessage());
@@ -418,6 +474,7 @@ public class MainController {
         if (edited != null) {
             int idx = master.indexOf(sel);
             master.set(idx, edited);
+            markDirty();
             rebuildChoicesFromTaxonomy(taxonomy); // ★ 不从行反推
             tableView.sort();
         }
@@ -429,6 +486,7 @@ public class MainController {
         if (idx < 0) return;
         RecordRow removed = sorted.get(idx);
         master.remove(removed);
+        markDirty();
         rebuildChoicesFromTaxonomy(taxonomy);     // ★ 删除记录不影响 taxonomy
     }
 
@@ -642,7 +700,7 @@ public class MainController {
 
         // OK 之前校验：至少 1 个类别、且每个类别至少 1 个子类
         Button okBtn = (Button) dlg.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, evt -> {
+        okBtn.addEventFilter(ActionEvent.ACTION, evt -> {
             if (catList.isEmpty()) {
                 evt.consume();
                 showError("至少需要一个类别");
@@ -663,19 +721,90 @@ public class MainController {
             List<String> catsFinal = new ArrayList<>(catList);
             List<List<String>> subsFinal = new ArrayList<>();
             for (ObservableList<String> ol : subLists) subsFinal.add(new ArrayList<>(ol));
-            this.taxonomy = new CategoryTaxonomy(catsFinal, subsFinal); // ★ 真正写回
-            rebuildChoicesFromTaxonomy(this.taxonomy);                  // ★ 刷新下拉
+            this.taxonomy = new CategoryTaxonomy(catsFinal, subsFinal); // 真正写回
+            rebuildChoicesFromTaxonomy(this.taxonomy);                  // 刷新下拉
             tableView.refresh();
+            markDirty();
         }
     }
 
-    // PAGE - 1
-    /* ======= 下方是本方法用到的小工具 ======= */
+    // MARK: Utils
+    private static final String EXT_MAIN = ".cflg";
+    private static final String EXT_LEGACY = ".bin";
+
+    private static int parseIntOrDefault(String s, int def) {
+        try {
+            return Integer.parseInt(s.trim());
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    private boolean isSupportedExt(String name) {
+        String n = name.toLowerCase(Locale.ROOT);
+        return n.endsWith(EXT_MAIN) || n.endsWith(EXT_LEGACY);
+    }
+
+    private boolean dragboardHasSupportedFile(Dragboard db) {
+        if (!db.hasFiles()) return false;
+        for (File f : db.getFiles()) if (isSupportedExt(f.getName())) return true;
+        return false;
+    }
+
+    private void enableDragOpen(Node target) {
+        target.setOnDragOver(e -> {
+            if (e.getGestureSource() != target && dragboardHasSupportedFile(e.getDragboard())) {
+                e.acceptTransferModes(TransferMode.COPY);
+            }
+            e.consume();
+        });
+        target.setOnDragDropped(e -> {
+            boolean success = false;
+            var db = e.getDragboard();
+            if (db.hasFiles()) {
+                Optional<File> first = db.getFiles().stream().filter(f -> isSupportedExt(f.getName())).findFirst();
+                if (first.isPresent()) {
+                    openFile(first.get());
+                    success = true;
+                } else {
+                    showError("不支持的文件类型，只支持 *" + EXT_MAIN + " / *" + EXT_LEGACY);
+                }
+            }
+            e.setDropCompleted(success);
+            e.consume();
+        });
+    }
+
+    private void openFile(File f) {
+        try {
+            LedgerIO.Bundle b = LedgerIO.load(f);
+            currentYm = YearMonth.of(b.ledger.year(), b.ledger.month());
+            currentFile = f;
+
+            master.clear();
+            int[] order = b.ledger.sortedIndicesByTimestampAsc();
+            for (int r : order) {
+                MonthlyLedger.EntryView e = b.ledger.get(r);
+                String cat = b.taxonomy.categoryName(e.categoryId());
+                String sub = b.taxonomy.subName(e.categoryId(), e.subCategoryId());
+                master.add(new RecordRow(e.timestamp(), e.amountInCents(), cat, sub, e.noteUtf8()));
+            }
+            taxonomy = b.taxonomy;
+            rebuildChoicesFromTaxonomy(taxonomy);
+            tableView.sort();
+            // 若你有年/月选择器，保持同步：
+            if (yearBox != null && monthBox != null) syncYearMonthPickersFromState();
+
+            clearDirty();
+            showInfo("已打开：" + f.getName());
+        } catch (IOException ex) {
+            showError("读取失败：" + ex.getMessage());
+        }
+    }
 
     private static void validateDayInMonth(YearMonth ym, int day) {
         int max = ym.lengthOfMonth();
-        if (day < 1 || day > max)
-            throw new IllegalArgumentException("非法日：" + day + "。该月应为 1.." + max);
+        if (day < 1 || day > max) throw new IllegalArgumentException("非法日：" + day + "。该月应为 1.." + max);
     }
 
     /**
@@ -693,9 +822,7 @@ public class MainController {
         yearBox.setItems(years);
 
         // 月份：1..12
-        monthBox.setItems(FXCollections.observableArrayList(
-                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-        ));
+        monthBox.setItems(FXCollections.observableArrayList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
 
         // 监听修改 -> 更新 currentYm
         yearBox.valueProperty().addListener((o, ov, nv) -> applyYearMonthFromPickers());
@@ -730,8 +857,13 @@ public class MainController {
             YearMonth newYm = YearMonth.of(y, m);
             if (!Objects.equals(newYm, currentYm)) {
                 currentYm = newYm;
-                // 如果你有默认文件名逻辑，这里也可以顺便刷新 initialFileName
-                // 例如：someLabel.setText("账本：" + currentYm);
+                markDirty();         // 年月变了，需保存
+                updateWindowTitle(); // 同步标题
+                // ★ 如果上次记住的“日”超出新月份范围，则夹断
+                if (lastQuickDay != null) {
+                    int max = currentYm.lengthOfMonth();
+                    if (lastQuickDay > max) lastQuickDay = max;
+                }
             }
         } catch (Exception ignore) {
             // 非法值直接忽略
@@ -816,11 +948,7 @@ public class MainController {
         String q = Optional.ofNullable(searchField.getText()).orElse("").trim().toLowerCase();
         filtered.setPredicate(r -> {
             if (q.isEmpty()) return true;
-            return formatDateTime(r.getTimestampMs()).toLowerCase().contains(q)
-                    || formatYuan(r.getAmountCents()).toLowerCase().contains(q)
-                    || r.getCategory().toLowerCase().contains(q)
-                    || r.getSubCategory().toLowerCase().contains(q)
-                    || r.getNote().toLowerCase().contains(q);
+            return formatDateTime(r.getTimestampMs()).toLowerCase().contains(q) || formatYuan(r.getAmountCents()).toLowerCase().contains(q) || r.getCategory().toLowerCase().contains(q) || r.getSubCategory().toLowerCase().contains(q) || r.getNote().toLowerCase().contains(q);
         });
     }
 
@@ -868,7 +996,7 @@ public class MainController {
 
         // 校验
         Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, evt -> {
+        okBtn.addEventFilter(ActionEvent.ACTION, evt -> {
             try {
                 Long.parseLong(tsField.getText().trim());
                 yuanToCents(amtField.getText().trim());
@@ -950,9 +1078,7 @@ public class MainController {
             map.computeIfAbsent(c, k -> new TreeSet<>()).add(s);
         }
         List<String> cats = new ArrayList<>(map.keySet());
-        List<List<String>> subs = cats.stream()
-                .map(c -> new ArrayList<>(map.get(c)))
-                .collect(Collectors.toList());
+        List<List<String>> subs = cats.stream().map(c -> new ArrayList<>(map.get(c))).collect(Collectors.toList());
         return new CategoryTaxonomy(cats, subs);
     }
 

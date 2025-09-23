@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
+<?import javafx.scene.layout.BorderPane?>
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="top.spco.cashflow.MainController">
     <top>
         <MenuBar>
@@ -10,8 +9,16 @@
                 <MenuItem text="分析" onAction="#onAnalyze"/>
                 <MenuItem text="分析..." onAction="#onAnalyzeFile"/>
                 <MenuItem text="打开..." onAction="#onOpen"/>
-                <MenuItem text="保存" onAction="#onSave"/>
+                <MenuItem text="保存" onAction="#onSave" accelerator="Shortcut+S"/>
                 <MenuItem text="退出" onAction="#onExit"/>
+            </Menu>
+            <Menu text="编辑">
+                <MenuItem text="添加" onAction="#onAdd"/>
+                <MenuItem text="快速添加" onAction="#onQuickAdd"/>
+                <MenuItem text="编辑" onAction="#onEdit"/>
+                <MenuItem text="删除" onAction="#onDelete"/>
+                <MenuItem text="编辑分类" onAction="#onEditCategory"/>
+                <MenuItem text="从微信导入" onAction="#onImportWeChatPay"/>
             </Menu>
         </MenuBar>
     </top>
@@ -19,7 +26,7 @@
     <center>
         <TableView fx:id="tableView" editable="true">
             <columns>
-                <TableColumn fx:id="colTimestamp" text="时间戳" prefWidth="150"/>
+                <TableColumn fx:id="colTimestamp" text="日期时间" prefWidth="150"/>
                 <TableColumn fx:id="colAmount" text="金额" prefWidth="100"/>
                 <TableColumn fx:id="colCategory" text="分类" prefWidth="100"/>
                 <TableColumn fx:id="colSubCategory" text="子类" prefWidth="100"/>
@@ -38,7 +45,7 @@
             <Separator orientation="VERTICAL"/>
             <Label text="搜索:"/>
             <TextField fx:id="searchField" onKeyReleased="#onSearch"/>
-            <ComboBox fx:id="yearBox"  prefWidth="100"/>
+            <ComboBox fx:id="yearBox" prefWidth="100"/>
             <ComboBox fx:id="monthBox" prefWidth="80"/>
         </ToolBar>
     </bottom>

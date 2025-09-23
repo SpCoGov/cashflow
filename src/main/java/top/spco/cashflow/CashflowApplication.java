@@ -21,6 +21,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.util.List;
+
 public class CashflowApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
@@ -36,10 +38,10 @@ public class CashflowApplication extends Application {
         root.requestFocus();
         stage.show();
 
-        // 启动时刷新一次标题（未命名 + 年月）
-        controller.getClass(); // 占位避免未使用告警
-        // 若需要可在 MainController.initialize() 末尾调用 updateWindowTitle()，
-        // 或这里拿到 currentYm/currentFile 后通过公开方法更新。
+        List<String> args = getParameters().getRaw();
+        if (!args.isEmpty()) {
+            controller.openFromExternalPath(args.get(0));
+        }
     }
 
     public static void main(String[] args) {

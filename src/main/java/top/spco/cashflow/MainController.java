@@ -175,7 +175,7 @@ public class MainController {
         stage.setOnCloseRequest(evt -> {
             if (!dirty) return; // 干净，直接关
             ButtonType SAVE = new ButtonType("保存", ButtonBar.ButtonData.YES);
-            ButtonType NO   = new ButtonType("不保存", ButtonBar.ButtonData.NO);
+            ButtonType NO = new ButtonType("不保存", ButtonBar.ButtonData.NO);
             ButtonType CANCEL = new ButtonType("取消", ButtonBar.ButtonData.CANCEL_CLOSE);
 
             Alert a = new Alert(Alert.AlertType.CONFIRMATION,
@@ -274,7 +274,6 @@ public class MainController {
             }
             LedgerIO.save(ledger, taxonomy, currentFile);
             clearDirty();
-            showInfo("已保存：" + currentFile.getName());
         } catch (Exception ex) {
             showError("保存失败：" + ex.getMessage());
         }
@@ -751,6 +750,21 @@ public class MainController {
         return false;
     }
 
+    public void openFromExternalPath(String path) {
+        if (path == null || path.isBlank()) return;
+        File f = new File(path);
+        if (!f.exists()) {
+            showError("文件不存在: " + path);
+            return;
+        }
+        if (!isSupportedExt(f.getName())) {
+            showError("不支持的文件类型: " + path);
+            return;
+        }
+        // 进 UI 线程打开
+        javafx.application.Platform.runLater(() -> openFile(f));
+    }
+
     private void enableDragOpen(Node target) {
         target.setOnDragOver(e -> {
             if (e.getGestureSource() != target && dragboardHasSupportedFile(e.getDragboard())) {
@@ -796,7 +810,6 @@ public class MainController {
             if (yearBox != null && monthBox != null) syncYearMonthPickersFromState();
 
             clearDirty();
-            showInfo("已打开：" + f.getName());
         } catch (IOException ex) {
             showError("读取失败：" + ex.getMessage());
         }

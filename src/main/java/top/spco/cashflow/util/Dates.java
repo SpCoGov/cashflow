@@ -36,9 +36,7 @@ public final class Dates {
     }
 
     public static LocalDate toLocalDate(long epochMs) {
-        return Instant.ofEpochMilli(epochMs)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+        return toLocalDate(epochMs, ZoneId.systemDefault());
     }
 
 

@@ -19,7 +19,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
@@ -146,7 +145,7 @@ public final class ImportPreviewController {
 
         // 金额列（沿用你的元编辑单元格）
         colAmt.setCellValueFactory(cd -> cd.getValue().amountCentsProperty().asObject());
-        colAmt.setCellFactory(col -> new YuanCell()); // 已支持编辑
+        colAmt.setCellFactory(col -> new YuanCell<>()); // 已支持编辑
         colAmt.setOnEditCommit(e -> e.getRowValue().setAmountCents(e.getNewValue()));
 
         // 分类列（可自由输入，也可下拉选择现有分类）

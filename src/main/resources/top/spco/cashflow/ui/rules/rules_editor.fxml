@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.CheckBox?>
+<GridPane fx:id="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="top.spco.cashflow.ui.rules.RulesEditorController"
+          hgap="10" vgap="10" style="-fx-padding:12;">
+    <columnConstraints>
+        <ColumnConstraints percentWidth="100"/>
+    </columnConstraints>
+
+    <TitledPane text="默认项（RuleConfig.defaults）">
+        <GridPane hgap="8" vgap="8" style="-fx-padding:8;">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="20"/>
+                <ColumnConstraints percentWidth="80"/>
+            </columnConstraints>
+
+            <Label text="默认分类"/>
+            <TextField fx:id="tfDefCategory" GridPane.columnIndex="1"/>
+
+            <Label text="默认子类" GridPane.rowIndex="1"/>
+            <TextField fx:id="tfDefSub" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+            <Label text="备注回退顺序(逗号分隔)" GridPane.rowIndex="2"/>
+            <TextField fx:id="tfDefNoteOrder" GridPane.rowIndex="2" GridPane.columnIndex="1"
+                       promptText="note,item,payee"/>
+
+            <Label text="仅从账本最后日期之后导入" GridPane.rowIndex="3"/>
+            <CheckBox fx:id="cbOnlyAppendFromLast" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        </GridPane>
+    </TitledPane>
+
+    <Label text="规则列表（RuleConfig.rules）" GridPane.rowIndex="1"/>
+
+    <TableView fx:id="tv" GridPane.rowIndex="2" prefHeight="420">
+        <columns>
+            <TableColumn fx:id="colName" text="名称" prefWidth="200"/>
+            <TableColumn fx:id="colWhen" text="条件概要" prefWidth="420"/>
+            <TableColumn fx:id="colThen" text="动作概要" prefWidth="320"/>
+        </columns>
+    </TableView>
+
+    <ToolBar GridPane.rowIndex="3">
+        <Button text="新增" onAction="#onAdd"/>
+        <Button text="编辑" onAction="#onEdit"/>
+        <Button text="删除" onAction="#onDelete"/>
+        <Separator/>
+        <Button text="上移" onAction="#onMoveUp"/>
+        <Button text="下移" onAction="#onMoveDown"/>
+        <Separator/>
+        <Button text="打开…" onAction="#onOpen"/>
+        <Button text="保存" onAction="#onSave"/>
+        <Button text="另存为…" onAction="#onSaveAs"/>
+    </ToolBar>
+</GridPane>

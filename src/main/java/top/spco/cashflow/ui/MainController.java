@@ -37,6 +37,7 @@ import top.spco.cashflow.ui.category.CategoryEditorResult;
 import top.spco.cashflow.ui.components.YuanCell;
 import top.spco.cashflow.ui.importing.ImportPreviewController;
 import top.spco.cashflow.ui.record.RecordEditorController;
+import top.spco.cashflow.ui.rules.RulesEditorController;
 import top.spco.cashflow.util.Amounts;
 import top.spco.cashflow.util.Dates;
 import top.spco.cashflow.util.StringUtil;
@@ -333,12 +334,7 @@ public class MainController {
                     LocalDate lastDate = Dates.toLocalDate(maxTs);
                     long cutoffStartOfDayMs = Dates.startOfDayMillis(lastDate);
 
-                    int before = finals.size();
                     finals = finals.stream().filter(t -> t.timestampMs() >= cutoffStartOfDayMs).toList();
-                    int dropped = before - finals.size();
-
-                    // （可选）给预览弹窗传个提示，比如：“已按配置仅保留 ≥ 2025-05-02 的记录（忽略 12 条）”
-                    // preview.setBanner(String.format("已按配置仅保留 ≥ %s 的记录（忽略 %d 条）", lastDate, dropped));
                 }
             }
 
@@ -364,6 +360,11 @@ public class MainController {
         } catch (Exception ex) {
             showError("导入失败：" + ex.getMessage());
         }
+    }
+
+    @FXML
+    private void onEditRules() {
+        RulesEditorController.show(getStage());
     }
 
     @FXML
@@ -534,7 +535,7 @@ public class MainController {
                 vm.setYearMonth(newYm);
                 markDirty();         // 年月变了，需保存
                 updateWindowTitle(); // 同步标题
-                // ★ 如果上次记住的“日”超出新月份范围，则夹断
+                // 如果上次记住的“日”超出新月份范围，则夹断
                 if (lastQuickDay != null) {
                     int max = vm.getYearMonth().lengthOfMonth();
                     if (lastQuickDay > max) lastQuickDay = max;

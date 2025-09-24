@@ -46,7 +46,6 @@ public final class MonthlyLedger {
     byte[] noteBlob;
     int noteSize;
 
-    // —— 可选：分类快速索引（倒排链表），按需启用 —— //
     // head[catId] = 链表首行index 或 -1； next[i] = 同分类下的下一行index 或 -1
     int[] catHead;
     int[] catNext;

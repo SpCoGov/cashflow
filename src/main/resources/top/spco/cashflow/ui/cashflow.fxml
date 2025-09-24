@@ -18,7 +18,10 @@
                 <MenuItem text="编辑" onAction="#onEdit"/>
                 <MenuItem text="删除" onAction="#onDelete"/>
                 <MenuItem text="编辑分类" onAction="#onEditCategory"/>
+            </Menu>
+            <Menu text="导入">
                 <MenuItem text="从微信导入" onAction="#onImportWeChatPay"/>
+                <MenuItem text="编辑解析规则" onAction="#onEditRules"/>
             </Menu>
         </MenuBar>
     </top>

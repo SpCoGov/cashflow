@@ -22,7 +22,7 @@
             <Separator/>
             <Button fx:id="btnSetCat" text="批量设置分类" onAction="#onBulkSetCategory"/>
             <Button fx:id="btnSetSub" text="批量设置子类" onAction="#onBulkSetSub"/>
-            <Button fx:id="btnCleanNote" text="批量设置子类" onAction="#onBulkCleanNote"/>
+            <Button fx:id="btnCleanNote" text="批量设置备注" onAction="#onBulkCleanNote"/>
         </ToolBar>
     </top>
 

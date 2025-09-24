@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="top.spco.cashflow.ui.rules.RuleEditDialogController"
+          hgap="10" vgap="8" style="-fx-padding:12;">
+    <columnConstraints>
+        <ColumnConstraints percentWidth="25"/>
+        <ColumnConstraints percentWidth="75"/>
+    </columnConstraints>
+
+    <Label text="规则名称"/>
+    <TextField fx:id="tfName" GridPane.columnIndex="1"/>
+
+    <TitledPane text="条件 when" GridPane.rowIndex="1" GridPane.columnSpan="2">
+        <GridPane hgap="8" vgap="6" style="-fx-padding:8;">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="20"/>
+                <ColumnConstraints percentWidth="30"/>
+                <ColumnConstraints percentWidth="10"/>
+                <ColumnConstraints percentWidth="40"/>
+            </columnConstraints>
+
+            <Label text="payee"/>
+            <ChoiceBox fx:id="cbPayeeType" GridPane.columnIndex="1"/>
+            <Label text="ic" GridPane.columnIndex="2"/> <!-- ignoreCase -->
+            <CheckBox fx:id="cbPayeeIC" GridPane.columnIndex="2"/>
+            <TextField fx:id="tfPayeeVal" GridPane.columnIndex="3"/>
+
+            <Label text="item" GridPane.rowIndex="1"/>
+            <ChoiceBox fx:id="cbItemType" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            <Label text="ic" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+            <CheckBox fx:id="cbItemIC" GridPane.rowIndex="1" GridPane.columnIndex="2"/>
+            <TextField fx:id="tfItemVal" GridPane.rowIndex="1" GridPane.columnIndex="3"/>
+
+            <Label text="note" GridPane.rowIndex="2"/>
+            <ChoiceBox fx:id="cbNoteType" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            <Label text="ic" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+            <CheckBox fx:id="cbNoteIC" GridPane.rowIndex="2" GridPane.columnIndex="2"/>
+            <TextField fx:id="tfNoteVal" GridPane.rowIndex="2" GridPane.columnIndex="3"/>
+
+            <Label text="amount 表达式" GridPane.rowIndex="3"/>
+            <TextField fx:id="tfAmountExpr"
+                       GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="3"
+                       promptText="例: &gt;0, &lt;=123.45, -100..-50"/>
+        </GridPane>
+    </TitledPane>
+
+    <TitledPane text="动作 then" GridPane.rowIndex="2" GridPane.columnSpan="2">
+        <GridPane hgap="8" vgap="6" style="-fx-padding:8;">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="20"/>
+                <ColumnConstraints percentWidth="80"/>
+            </columnConstraints>
+
+            <Label text="drop（丢弃）"/>
+            <CheckBox fx:id="cbDrop" GridPane.columnIndex="1"/>
+
+            <Label text="category" GridPane.rowIndex="1"/>
+            <TextField fx:id="tfCat" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+            <Label text="sub" GridPane.rowIndex="2"/>
+            <TextField fx:id="tfSub" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+            <Label text="noteReplace.regex" GridPane.rowIndex="3"/>
+            <TextField fx:id="tfNoteRegex" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+            <Label text="noteReplace.with" GridPane.rowIndex="4"/>
+            <TextField fx:id="tfNoteWith" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        </GridPane>
+    </TitledPane>
+</GridPane>
+

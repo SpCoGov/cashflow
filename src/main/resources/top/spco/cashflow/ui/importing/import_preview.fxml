@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="top.spco.cashflow.ui.importing.ImportPreviewController">
+    <center>
+        <TableView fx:id="table" editable="true">
+            <columns>
+                <TableColumn fx:id="colUse" text="导入" prefWidth="60"/>
+                <TableColumn fx:id="colTs" text="时间" prefWidth="170"/>
+                <TableColumn fx:id="colAmt" text="金额(元)" prefWidth="100"/>
+                <TableColumn fx:id="colCat" text="分类" prefWidth="120"/>
+                <TableColumn fx:id="colSub" text="子类" prefWidth="140"/>
+                <TableColumn fx:id="colNote" text="备注" prefWidth="240"/>
+            </columns>
+        </TableView>
+    </center>
+
+    <top>
+        <ToolBar>
+            <Button fx:id="btnToggleAll" text="全选/全不选" onAction="#onToggleAll"/>
+            <Separator/>
+            <Button fx:id="btnSetCat" text="批量设置分类" onAction="#onBulkSetCategory"/>
+            <Button fx:id="btnSetSub" text="批量设置子类" onAction="#onBulkSetSub"/>
+            <Button fx:id="btnCleanNote" text="批量设置子类" onAction="#onBulkCleanNote"/>
+        </ToolBar>
+    </top>
+
+    <bottom>
+        <Label fx:id="lblSummary" style="-fx-padding:8;"/>
+    </bottom>
+</BorderPane>

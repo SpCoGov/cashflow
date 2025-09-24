@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns:fx="http://javafx.com/fxml"
+          fx:controller="top.spco.cashflow.ui.record.RecordEditorController"
+          hgap="8" vgap="8">
+    <!-- 正确写法：Insets -->
+    <padding>
+        <Insets topRightBottomLeft="10"/>
+    </padding>
+
+    <!-- 仅 QUICK 模式可见：账本年月 + 日 -->
+    <HBox fx:id="paneQuick" spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2">
+        <Label text="账本年月"/>
+        <Label fx:id="lblYm"/>
+        <Label text="日"/>
+        <TextField fx:id="tfDay" prefColumnCount="4"/>
+    </HBox>
+
+    <!-- 仅 EDIT 模式可见：时间戳(ms) -->
+    <HBox fx:id="paneTimestamp" spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2">
+        <Label text="时间戳(ms)"/>
+        <TextField fx:id="tfTimestamp" prefColumnCount="22"/>
+    </HBox>
+
+    <Label text="金额(元)" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <TextField fx:id="tfAmount" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+    <Label text="类别(必选)" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="cbCategory" editable="true" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+    <Label text="子类别(必选)" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+    <ComboBox fx:id="cbSub" editable="true" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+    <Label text="备注" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+    <TextField fx:id="tfNote" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+</GridPane>

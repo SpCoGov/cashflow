@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package top.spco.cashflow;
+package top.spco.cashflow.ui;
 
-import javafx.beans.property.*;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,7 +27,8 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import top.spco.cashflow.data.LedgerIO;
 import top.spco.cashflow.data.MonthlyLedger;
@@ -34,15 +38,21 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-/** 账本分析器：读取文件 -> 统计 -> 横向图表 / 分栏明细 / 子类占比 */
+/**
+ * 账本分析器：读取文件 -> 统计 -> 横向图表 / 分栏明细 / 子类占比
+ */
 public final class LedgerAnalyzer {
 
     private static final DecimalFormat YUAN_FMT = new DecimalFormat("0.00");
-    private static final DecimalFormat PCT_FMT  = new DecimalFormat("0.00%");
+    private static final DecimalFormat PCT_FMT = new DecimalFormat("0.00%");
 
-    private LedgerAnalyzer() {}
+    private LedgerAnalyzer() {
+    }
 
     // === 入口：显示分析窗口 ===
     public static void showAnalysis(Stage owner, File file) throws IOException {
@@ -100,7 +110,8 @@ public final class LedgerAnalyzer {
                 }
             }
 
-            if (income) totalIncome += amount; else totalExpenseAbs += -amount;
+            if (income) totalIncome += amount;
+            else totalExpenseAbs += -amount;
             netCents += amount;
             count++;
         }
@@ -110,7 +121,7 @@ public final class LedgerAnalyzer {
             s.expenseShare = (totalExpenseAbs == 0) ? 0d
                     : (Math.abs(s.expenseCents) * 1.0) / totalExpenseAbs;  // 类别在全局支出占比
             s.avgExpenseCents = (s.expenseCount == 0) ? 0L
-                    : Math.round((double)s.expenseCents / s.expenseCount); // 仍为负数
+                    : Math.round((double) s.expenseCents / s.expenseCount); // 仍为负数
         }
         for (Map<String, Stat> m : subStats.values()) {
             long catExpenseAbs = 0L;
@@ -119,7 +130,7 @@ public final class LedgerAnalyzer {
                 s.expenseShare = (catExpenseAbs == 0) ? 0d
                         : (Math.abs(s.expenseCents) * 1.0) / catExpenseAbs; // 子类在所属类别支出占比
                 s.avgExpenseCents = (s.expenseCount == 0) ? 0L
-                        : Math.round((double)s.expenseCents / s.expenseCount);
+                        : Math.round((double) s.expenseCents / s.expenseCount);
             }
         }
 
@@ -130,11 +141,13 @@ public final class LedgerAnalyzer {
     private static Tab buildOverviewTab(Analysis a) {
         // 顶部概览数字
         GridPane top = new GridPane();
-        top.setHgap(16); top.setVgap(6); top.setPadding(new Insets(12));
+        top.setHgap(16);
+        top.setVgap(6);
+        top.setPadding(new Insets(12));
         top.addRow(0, bold("总收入（元）:"), new Label(fmtYuan(a.totalIncome)),
                 bold("总支出（元）:"), new Label(fmtYuan(-a.totalExpenseAbs)),
-                bold("净额（元）:"),   new Label(fmtYuan(a.netCents)),
-                bold("记录数:"),     new Label(String.valueOf(a.count)));
+                bold("净额（元）:"), new Label(fmtYuan(a.netCents)),
+                bold("记录数:"), new Label(String.valueOf(a.count)));
 
         // 左：类别支出占比饼图
         PieChart pie = new PieChart();
@@ -289,6 +302,7 @@ public final class LedgerAnalyzer {
         for (Stat s : map.values()) list.add(new CatRow(s));
         return list;
     }
+
     private static ObservableList<SubRow> toSubRows(Map<String, Map<String, Stat>> map) {
         ObservableList<SubRow> list = FXCollections.observableArrayList();
         for (Map.Entry<String, Map<String, Stat>> e : map.entrySet()) {
@@ -304,7 +318,12 @@ public final class LedgerAnalyzer {
         c.setPrefWidth(prefWidth);
         return c;
     }
-    private static Label bold(String t) { Label l = new Label(t); l.setStyle("-fx-font-weight: bold;"); return l; }
+
+    private static Label bold(String t) {
+        Label l = new Label(t);
+        l.setStyle("-fx-font-weight: bold;");
+        return l;
+    }
 
     // === 数据模型 ===
     private static final class Analysis {
@@ -347,13 +366,13 @@ public final class LedgerAnalyzer {
     // === 表格 Row（类别） ===
     public static final class CatRow {
         private final StringProperty category = new SimpleStringProperty();
-        private final LongProperty   count    = new SimpleLongProperty();
+        private final LongProperty count = new SimpleLongProperty();
         private final StringProperty incomeYuan = new SimpleStringProperty();
-        private final StringProperty expenseYuan= new SimpleStringProperty();
-        private final StringProperty netYuan    = new SimpleStringProperty();
+        private final StringProperty expenseYuan = new SimpleStringProperty();
+        private final StringProperty netYuan = new SimpleStringProperty();
         private final StringProperty expenseSharePct = new SimpleStringProperty();
-        private final StringProperty avgExpenseYuan  = new SimpleStringProperty();
-        private final StringProperty maxExpenseYuan  = new SimpleStringProperty();
+        private final StringProperty avgExpenseYuan = new SimpleStringProperty();
+        private final StringProperty maxExpenseYuan = new SimpleStringProperty();
 
         CatRow(Stat s) {
             category.set(s.category);
@@ -365,20 +384,23 @@ public final class LedgerAnalyzer {
             avgExpenseYuan.set(fmtYuan(s.avgExpenseCents));   // 为负显示负
             maxExpenseYuan.set(fmtYuan(s.maxExpenseCents));   // 为负显示负
         }
-        public StringProperty categoryProperty() { return category; }
+
+        public StringProperty categoryProperty() {
+            return category;
+        }
     }
 
     // === 表格 Row（子类别） ===
     public static final class SubRow {
-        private final StringProperty category    = new SimpleStringProperty();
+        private final StringProperty category = new SimpleStringProperty();
         private final StringProperty subCategory = new SimpleStringProperty();
-        private final LongProperty   count       = new SimpleLongProperty();
-        private final StringProperty incomeYuan  = new SimpleStringProperty();
+        private final LongProperty count = new SimpleLongProperty();
+        private final StringProperty incomeYuan = new SimpleStringProperty();
         private final StringProperty expenseYuan = new SimpleStringProperty();
-        private final StringProperty netYuan     = new SimpleStringProperty();
+        private final StringProperty netYuan = new SimpleStringProperty();
         private final StringProperty expenseSharePct = new SimpleStringProperty(); // 在所属类别内占比
-        private final StringProperty avgExpenseYuan  = new SimpleStringProperty();
-        private final StringProperty maxExpenseYuan  = new SimpleStringProperty();
+        private final StringProperty avgExpenseYuan = new SimpleStringProperty();
+        private final StringProperty maxExpenseYuan = new SimpleStringProperty();
 
         SubRow(Stat s) {
             category.set(s.category);
@@ -391,8 +413,14 @@ public final class LedgerAnalyzer {
             avgExpenseYuan.set(fmtYuan(s.avgExpenseCents));
             maxExpenseYuan.set(fmtYuan(s.maxExpenseCents));
         }
-        public StringProperty categoryProperty()    { return category; }
-        public StringProperty subCategoryProperty() { return subCategory; }
+
+        public StringProperty categoryProperty() {
+            return category;
+        }
+
+        public StringProperty subCategoryProperty() {
+            return subCategory;
+        }
     }
 
     // === 金额/比例格式化 ===
@@ -400,10 +428,15 @@ public final class LedgerAnalyzer {
         BigDecimal yuan = BigDecimal.valueOf(cents).movePointLeft(2);
         return YUAN_FMT.format(yuan);
     }
+
     private static double centsToYuanDouble(long centsAbs) {
         return BigDecimal.valueOf(centsAbs).movePointLeft(2).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
-    private static String fmtPct(double v) { return PCT_FMT.format(v); }
+
+    private static String fmtPct(double v) {
+        return PCT_FMT.format(v);
+    }
+
     private static double parseYuanString(String s) {
         return new BigDecimal(s.replace(",", "")).doubleValue();
     }

@@ -2,7 +2,7 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.BorderPane?>
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="top.spco.cashflow.MainController">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="top.spco.cashflow.ui.MainController">
     <top>
         <MenuBar>
             <Menu text="文件">

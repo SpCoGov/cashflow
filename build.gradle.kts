@@ -28,6 +28,11 @@ dependencies {
     javafxModules.forEach {
         implementation("org.openjfx:javafx-$it:$javafxVersion:$platform")
     }
+
+    // YAML
+    implementation("org.yaml:snakeyaml:2.5")
+    // XLSX
+    implementation("org.apache.poi:poi-ooxml:5.4.1")
 }
 
 java {
@@ -65,17 +70,19 @@ jlink {
     }
 
     jpackage {
-        imageName     = "Cashflow"
+        imageName = "Cashflow"
         installerName = "Cashflow-${project.version}"  // 可以带 -alpha
-        appVersion    = appVersionNumeric              // 必须是数字版本
-        vendor        = "SpCo"
+        appVersion = appVersionNumeric              // 必须是数字版本
+        vendor = "SpCo"
         installerType = "msi"
         imageOptions = listOf("--icon", file("src/main/resources/icon/app.ico").absolutePath)
 
         // 注册 .cflg 关联
-        installerOptions.addAll(listOf(
-            "--file-associations", file("src/packaging/cflg-assoc.properties").absolutePath
-        ))
+        installerOptions.addAll(
+            listOf(
+                "--file-associations", file("src/packaging/cflg-assoc.properties").absolutePath
+            )
+        )
 
         // 应用图标
         imageOptions = listOf(

@@ -20,13 +20,14 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import top.spco.cashflow.ui.MainController;
 
 import java.util.List;
 
 public class CashflowApplication extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/top/spco/gui/cashflow.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/top/spco/cashflow/ui/cashflow.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);
         stage.setScene(scene);
@@ -40,11 +41,7 @@ public class CashflowApplication extends Application {
 
         List<String> args = getParameters().getRaw();
         if (!args.isEmpty()) {
-            controller.openFromExternalPath(args.get(0));
+            controller.openFromExternalPath(args.getFirst());
         }
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

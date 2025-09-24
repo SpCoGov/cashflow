@@ -17,7 +17,7 @@ package top.spco;
 
 import org.junit.jupiter.api.Test;
 import top.spco.cashflow.data.LedgerIO;
-import top.spco.cashflow.data.LedgerIO.CategoryTaxonomy;
+import top.spco.cashflow.data.CategoryTaxonomy;
 import top.spco.cashflow.data.MonthlyLedger;
 
 import java.io.File;

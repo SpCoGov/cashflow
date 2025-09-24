@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns:fx="http://javafx.com/fxml"
+          fx:controller="top.spco.cashflow.ui.category.CategoryEditorController"
+          hgap="12" vgap="8">
+    <columnConstraints>
+        <ColumnConstraints hgrow="ALWAYS"/>
+        <ColumnConstraints hgrow="ALWAYS"/>
+    </columnConstraints>
+
+    <Label text="类别" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+    <Label text="子类别" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+    <ListView fx:id="lvCat" prefWidth="220"
+              GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+    <ListView fx:id="lvSub" prefWidth="220"
+              GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+    <ToolBar GridPane.rowIndex="2" GridPane.columnIndex="0">
+        <Button text="新增类别" fx:id="btnAddCat" onAction="#onAddCat"/>
+        <Button text="重命名类别" fx:id="btnRenCat" onAction="#onRenameCat"/>
+        <Button text="删除类别" fx:id="btnDelCat" onAction="#onDeleteCat"/>
+    </ToolBar>
+
+    <ToolBar GridPane.rowIndex="2" GridPane.columnIndex="1">
+        <Button text="新增子类" fx:id="btnAddSub" onAction="#onAddSub"/>
+        <Button text="重命名子类" fx:id="btnRenSub" onAction="#onRenameSub"/>
+        <Button text="删除子类" fx:id="btnDelSub" onAction="#onDeleteSub"/>
+    </ToolBar>
+</GridPane>

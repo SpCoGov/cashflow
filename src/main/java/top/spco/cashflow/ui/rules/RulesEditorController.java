@@ -45,7 +45,8 @@ import java.util.stream.Collectors;
 import static top.spco.cashflow.util.AlertUtil.showError;
 
 public final class RulesEditorController {
-    @FXML private Node root;
+    @FXML
+    private Node root;
     @FXML
     private TextField tfDefCategory;
     @FXML
@@ -121,7 +122,10 @@ public final class RulesEditorController {
     private void onSave() {
         try {
             File f = rulesFile.get();
-            if (f == null) { onSaveAs(); return; }
+            if (f == null) {
+                onSaveAs();
+                return;
+            }
 
             RuleConfig toSave = collectFromUI();
             RuleConfigs.save(f, toSave);

@@ -18,25 +18,25 @@ package top.spco.cashflow.ui.rules;
 import top.spco.cashflow.importer.config.RuleDef;
 
 public final class PojoDeepCopy {
-    public static RuleDef copyRule(RuleDef s){
+    public static RuleDef copyRule(RuleDef s) {
         if (s == null) return new RuleDef();
         RuleDef r = new RuleDef();
         r.name = s.name;
 
         r.when = new RuleDef.When();
-        if (s.when != null){
+        if (s.when != null) {
             r.when.amount = s.when.amount;
             r.when.payee = copyTM(s.when.payee);
-            r.when.item  = copyTM(s.when.item);
-            r.when.note  = copyTM(s.when.note);
+            r.when.item = copyTM(s.when.item);
+            r.when.note = copyTM(s.when.note);
         }
 
         r.then = new RuleDef.Then();
-        if (s.then != null){
+        if (s.then != null) {
             r.then.drop = s.then.drop;
             r.then.category = s.then.category;
             r.then.sub = s.then.sub;
-            if (s.then.noteReplace != null){
+            if (s.then.noteReplace != null) {
                 r.then.noteReplace = new RuleDef.NoteReplace();
                 r.then.noteReplace.regex = s.then.noteReplace.regex;
                 r.then.noteReplace.with = s.then.noteReplace.with;
@@ -45,7 +45,7 @@ public final class PojoDeepCopy {
         return r;
     }
 
-    private static RuleDef.TextMatch copyTM(RuleDef.TextMatch t){
+    private static RuleDef.TextMatch copyTM(RuleDef.TextMatch t) {
         if (t == null) return null;
         RuleDef.TextMatch c = new RuleDef.TextMatch();
         c.contains = t.contains;

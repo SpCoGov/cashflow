@@ -31,5 +31,8 @@ public final class ThenSummary {
         }
         return sb.toString().trim();
     }
-    private static String nz(String s){ return s==null? "":s; }
+
+    private static String nz(String s) {
+        return s == null ? "" : s;
+    }
 }

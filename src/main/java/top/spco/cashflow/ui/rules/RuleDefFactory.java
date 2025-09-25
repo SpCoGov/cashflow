@@ -25,5 +25,8 @@ public final class RuleDefFactory {
         r.then = new RuleDef.Then();
         return r;
     }
-    public static RuleDef copyOf(RuleDef src) { return PojoDeepCopy.copyRule(src); }
+
+    public static RuleDef copyOf(RuleDef src) {
+        return PojoDeepCopy.copyRule(src);
+    }
 }

@@ -23,16 +23,20 @@ public final class WhenSummary {
         var w = r.when;
         StringBuilder sb = new StringBuilder();
         if (w.payee != null) sb.append("payee=").append(tm(w.payee)).append("; ");
-        if (w.item  != null) sb.append("item=").append(tm(w.item)).append("; ");
-        if (w.note  != null) sb.append("note=").append(tm(w.note)).append("; ");
-        if (w.amount!= null) sb.append("amount=").append(w.amount).append("; ");
+        if (w.item != null) sb.append("item=").append(tm(w.item)).append("; ");
+        if (w.note != null) sb.append("note=").append(tm(w.note)).append("; ");
+        if (w.amount != null) sb.append("amount=").append(w.amount).append("; ");
         return sb.toString();
     }
-    private static String tm(RuleDef.TextMatch t){
+
+    private static String tm(RuleDef.TextMatch t) {
         if (t.regex != null) return "regex:/" + t.regex + "/" + ic(t.ignoreCase);
         if (t.equals != null) return "equals:\"" + t.equals + "\"" + ic(t.ignoreCase);
         if (t.contains != null) return "contains:\"" + t.contains + "\"" + ic(t.ignoreCase);
         return "";
     }
-    private static String ic(Boolean b){ return (b==null || b) ? "i" : ""; }
+
+    private static String ic(Boolean b) {
+        return (b == null || b) ? "i" : "";
+    }
 }

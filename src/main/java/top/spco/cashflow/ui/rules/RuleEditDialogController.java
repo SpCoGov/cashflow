@@ -29,16 +29,22 @@ import static top.spco.cashflow.util.AlertUtil.showError;
 
 public final class RuleEditDialogController {
 
-    @FXML private TextField tfName;
+    @FXML
+    private TextField tfName;
 
     // when
-    @FXML private ChoiceBox<String> cbPayeeType, cbItemType, cbNoteType;
-    @FXML private CheckBox cbPayeeIC, cbItemIC, cbNoteIC;
-    @FXML private TextField tfPayeeVal, tfItemVal, tfNoteVal, tfAmountExpr;
+    @FXML
+    private ChoiceBox<String> cbPayeeType, cbItemType, cbNoteType;
+    @FXML
+    private CheckBox cbPayeeIC, cbItemIC, cbNoteIC;
+    @FXML
+    private TextField tfPayeeVal, tfItemVal, tfNoteVal, tfAmountExpr;
 
     // then
-    @FXML private CheckBox cbDrop;
-    @FXML private TextField tfCat, tfSub, tfNoteRegex, tfNoteWith;
+    @FXML
+    private CheckBox cbDrop;
+    @FXML
+    private TextField tfCat, tfSub, tfNoteRegex, tfNoteWith;
 
     private RuleDef working;
 
@@ -69,13 +75,13 @@ public final class RuleEditDialogController {
             }
             return Optional.empty();
         } catch (IOException e) {
-            e.printStackTrace();
             showError("无法打开对话框：" + e.getMessage());
             return Optional.empty();
         }
     }
 
-    @FXML private void initialize() {
+    @FXML
+    private void initialize() {
         // TextMatch 三选一：contains / equals / regex / (空=不启用)
         cbPayeeType.getItems().setAll("", "contains", "equals", "regex");
         cbItemType.getItems().setAll("", "contains", "equals", "regex");
@@ -152,15 +158,26 @@ public final class RuleEditDialogController {
     }
 
     private static void setTextMatch(RuleDef.TextMatch tm, ChoiceBox<String> cb, CheckBox ic, TextField val) {
-        if (tm.regex != null) { cb.setValue("regex"); val.setText(tm.regex); }
-        else if (tm.equals != null) { cb.setValue("equals"); val.setText(tm.equals); }
-        else if (tm.contains != null) { cb.setValue("contains"); val.setText(tm.contains); }
-        else { cb.setValue(""); val.clear(); }
-        ic.setSelected(tm.ignoreCase == null || tm.ignoreCase.booleanValue());
+        if (tm.regex != null) {
+            cb.setValue("regex");
+            val.setText(tm.regex);
+        } else if (tm.equals != null) {
+            cb.setValue("equals");
+            val.setText(tm.equals);
+        } else if (tm.contains != null) {
+            cb.setValue("contains");
+            val.setText(tm.contains);
+        } else {
+            cb.setValue("");
+            val.clear();
+        }
+        ic.setSelected(tm.ignoreCase == null || tm.ignoreCase);
     }
 
     private static void clearTM(ChoiceBox<String> cb, CheckBox ic, TextField val) {
-        cb.setValue(""); ic.setSelected(true); val.clear();
+        cb.setValue("");
+        ic.setSelected(true);
+        val.clear();
     }
 
     private static RuleDef.TextMatch buildTM(ChoiceBox<String> cb, CheckBox ic, TextField val) {
@@ -177,6 +194,12 @@ public final class RuleEditDialogController {
         return tm;
     }
 
-    private static String nz(String s){ return s==null? "":s; }
-    private static String emptyToNull(String s){ s = s==null? "" : s.trim(); return s.isEmpty()? null : s; }
+    private static String nz(String s) {
+        return s == null ? "" : s;
+    }
+
+    private static String emptyToNull(String s) {
+        s = s == null ? "" : s.trim();
+        return s.isEmpty() ? null : s;
+    }
 }

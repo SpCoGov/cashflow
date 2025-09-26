@@ -1,7 +1,7 @@
 plugins {
     application
     id("java")
-    id("org.beryx.jlink") version "2.26.0"
+    id("org.beryx.jlink") version "3.1.3"
 }
 
 group = "top.spco"

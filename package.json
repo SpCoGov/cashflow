@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "tauri": "tauri",
     "desktop": "tauri dev",
-    "desktop:build": "tauri build",
+    "package": "node scripts/package.mjs",
     "test": "node --test scripts/test-format.mjs && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo test --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {

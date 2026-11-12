@@ -34,7 +34,13 @@
         "name": "Cashflow Ledger File",
         "description": "Cashflow Ledger File",
         "mimeType": "application/x-cashflow-ledger",
-        "role": "Editor"
+        "role": "Editor",
+        "rank": "Owner",
+        "contentTypes": ["top.spco.cashflow.cflg"],
+        "exportedType": {
+          "identifier": "top.spco.cashflow.cflg",
+          "conformsTo": ["public.data"]
+        }
       }
     ],
     "windows": {

@@ -53,7 +53,8 @@ export const api = {
   saveRules: (path: string, config: RuleConfig) => invoke<void>("save_rules", { path, config }),
   analyze: (entries: Entry[]) => invoke<Analysis>("analyze", { entries }),
   exportAnalysis: (path: string, analysis: Analysis) => invoke<void>("export_analysis", { path, analysis }),
-  startupPath: () => invoke<string | null>("startup_path"),
+  /** 取走待打开的账本路径（取后清空） */
+  takePendingOpen: () => invoke<string | null>("take_pending_open"),
 };
 
 /** 把分类/子类并入分类树（不存在则追加），返回新数组。 */

@@ -1,3 +1,4 @@
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
@@ -142,14 +143,19 @@ export function App() {
       }
     };
     window.addEventListener("keydown", onKey);
-    api.startupPath().then((p) => {
+    // 启动参数或 macOS 访达打开的文件；先注册监听再取，避免错过启动时的事件
+    const openPending = async () => {
+      const p = await api.takePendingOpen();
       if (!p) return;
-      if (isLedgerFile(p)) latest.current.loadFile(p);
-      else dialogs.alert(`不支持的文件类型: ${p}`);
-    });
+      if (!isLedgerFile(p)) return dialogs.alert(`不支持的文件类型: ${p}`);
+      if (await latest.current.confirmDiscard()) latest.current.loadFile(p);
+    };
+    const unOpen = listen("open-file", openPending);
+    unOpen.then(openPending);
     return () => {
       unClose.then((f) => f());
       unDrop.then((f) => f());
+      unOpen.then((f) => f());
       window.removeEventListener("keydown", onKey);
     };
   }, [dialogs]);

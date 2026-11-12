@@ -10,6 +10,7 @@ use ledger::{Category, Entry, Ledger};
 use rules::RuleConfig;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 /// 先写同目录临时文件再替换，避免写到一半时损坏原文件。
 pub(crate) fn write_atomic(path: &Path, data: &[u8]) -> Result<(), String> {
@@ -92,15 +93,38 @@ fn export_analysis(path: String, analysis: Analysis) -> Result<(), String> {
     analysis::export_xlsx(Path::new(&path), &analysis)
 }
 
-/// 通过文件关联或命令行打开时传入的账本路径。
+/// 等前端取走的待打开账本：Windows 来自命令行参数（文件关联），
+/// macOS 来自访达打开文件的 `RunEvent::Opened`（程序运行中也可能收到，届时发 `open-file` 事件）。
+struct PendingOpen(Mutex<Option<String>>);
+
 #[tauri::command]
-fn startup_path() -> Option<String> {
-    std::env::args().nth(1)
+fn take_pending_open(pending: tauri::State<PendingOpen>) -> Option<String> {
+    pending.0.lock().unwrap().take()
+}
+
+#[cfg(target_os = "macos")]
+fn on_opened(app: &tauri::AppHandle, urls: Vec<tauri::Url>) {
+    use tauri::{Emitter, Manager};
+    if let Some(path) = urls
+        .into_iter()
+        .filter_map(|u| u.to_file_path().ok())
+        .last()
+    {
+        *app.state::<PendingOpen>().0.lock().unwrap() = Some(path.to_string_lossy().into_owned());
+        let _ = app.emit("open-file", ());
+    }
 }
 
 pub fn run() {
+    // macOS 不通过命令行参数传文件
+    let initial = if cfg!(target_os = "macos") {
+        None
+    } else {
+        std::env::args().nth(1)
+    };
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .manage(PendingOpen(Mutex::new(initial)))
         .invoke_handler(tauri::generate_handler![
             open_ledger,
             save_ledger,
@@ -109,10 +133,16 @@ pub fn run() {
             save_rules,
             analyze,
             export_analysis,
-            startup_path
+            take_pending_open
         ])
-        .run(tauri::generate_context!())
-        .expect("启动 Cashflow 失败");
+        .build(tauri::generate_context!())
+        .expect("启动 Cashflow 失败")
+        .run(|_app, _event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = _event {
+                on_opened(_app, urls);
+            }
+        });
 }
 
 #[cfg(test)]
